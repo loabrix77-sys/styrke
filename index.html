@@ -12,20 +12,20 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:#0f0f14;color:#f0f0f8;font-family:'Courier New',monospace;overscroll-behavior:none}
 .hidden{display:none!important}
-/* Header */
-#header{background:#1a1a24;border-bottom:1px solid #2e2e3e;padding:16px}
-#header h1{color:#c8f55a;font-size:20px;font-weight:900;letter-spacing:-1px}
-#header p{color:#4a4a6a;font-size:10px;letter-spacing:2px;margin-top:2px}
+
+#header{background:#1a1a24;border-bottom:1px solid #2e2e3e;padding:16px;padding-top:max(env(safe-area-inset-top),24px)}
+#header h1{color:#c8f55a;font-size:22px;font-weight:900;letter-spacing:-1px}
+#header p{color:#4a4a6a;font-size:12px;letter-spacing:2px;margin-top:2px}
 /* Tabs */
 #tabs{display:flex;background:#1a1a24;border-bottom:1px solid #2e2e3e;position:sticky;top:0;z-index:100}
-.tab{flex:1;padding:14px 4px;border:none;background:transparent;color:#7a7a9a;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-bottom:2px solid transparent;cursor:pointer;font-family:'Courier New',monospace}
+.tab{flex:1;padding:14px 4px;border:none;background:transparent;color:#7a7a9a;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-bottom:2px solid transparent;cursor:pointer;font-family:'Courier New',monospace}
 .tab.active{color:#c8f55a;border-bottom:2px solid #c8f55a}
 /* Content */
 #content{padding-bottom:60px}
 .page{padding:16px}
 /* Cards */
 .card{background:#22222f;border:1px solid #2e2e3e;border-radius:14px;padding:16px;margin-bottom:12px}
-.card-title{font-weight:700;font-size:15px;color:#f0f0f8}
+.card-title{font-weight:700;font-size:17px;color:#f0f0f8}
 .card-sub{font-size:11px;color:#7a7a9a;margin-top:3px}
 /* Buttons */
 .btn{width:100%;padding:16px;border:none;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:1px}
@@ -40,8 +40,8 @@ body{background:#0f0f14;color:#f0f0f8;font-family:'Courier New',monospace;oversc
 .day-btn small{color:#4a4a6a;font-size:12px;display:block;margin-top:4px}
 /* Exercise card */
 .ex-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:14px 16px}
-.ex-title{font-weight:700;font-size:14px}
-.ex-last{font-size:11px;color:#7a7a9a;margin-top:2px}
+.ex-title{font-weight:700;font-size:16px}
+.ex-last{font-size:13px;color:#7a7a9a;margin-top:2px}
 .ex-last span{color:#c8f55a}
 .ex-body{padding:0 16px 16px}
 .set-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
@@ -67,9 +67,9 @@ svg text{font-family:'Courier New',monospace}
 /* Sessions */
 .session-card{background:#22222f;border:1px solid #2e2e3e;border-radius:12px;padding:14px;margin-bottom:8px}
 .session-head{display:flex;justify-content:space-between;margin-bottom:6px}
-.session-day{font-weight:700;color:#c8f55a;font-size:13px}
+.session-day{font-weight:700;color:#c8f55a;font-size:15px}
 .session-date{font-size:11px;color:#7a7a9a}
-.session-ex{font-size:11px;color:#7a7a9a;margin-bottom:2px}
+.session-ex{font-size:13px;color:#7a7a9a;margin-bottom:2px}
 .session-ex span{color:#f0f0f8}
 /* Program */
 .ex-item{background:#22222f;border:1px solid #2e2e3e;border-radius:10px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
@@ -138,7 +138,8 @@ var PROGRAMS = {
 var SEED_LIBRARY = ["Hasecurl","Benpres","Divergent Seated Rows","Skulderpres","Hip Thrusts","Rows høj / T-bar Row","Dip Maskine / Triceps Press","Hip Abduction","RDL","HSeated Row","Brystpres","Leg Extension","Lat Pull","Converging Lat Pull","Diverging Lat Pull","Lat Press"];
 var HISTORICAL = [
   {id:"s1",date:"2025-01-09",day:1,exercises:{"Hasecurl":{sets:[[52,10],[52,10],[52,10]],pain:0},"Benpres":{sets:[[25,12],[32,12],[39,10]],pain:5},"Divergent Seated Rows":{sets:[[0,0],[0,0],[0,0]],pain:0},"Skulderpres":{sets:[[10,8],[10,10],[10,10]],pain:0}}},
-  {id:"s2",date:"2025-01-12",day:2,exercises:{"Hip Thrusts":{sets:[[0,0],[0,0],[0,0]],pain:0},"Rows høj / T-bar Row":{sets:[[0,0],[0,0],[0,0]],pain:0},"Dip Maskine / Triceps Press":{sets:[[0,0],[0,0],[0,0]],pain:0},"Hip Abduction":{sets:[[0,0],[0,0],[0,0]],pain:0}}},
+  {id:"s2a",date:"2025-01-09",day:2,exercises:{"Hip Thrusts":{sets:[[110,11],[110,11],[110,10]],pain:0},"Rows høj / T-bar Row":{sets:[[32,12],[39,10],[39,10]],pain:0},"Dip Maskine / Triceps Press":{sets:[[36,12],[41,12],[45,11]],pain:0},"Hip Abduction":{sets:[[45,10],[45,10],[45,10]],pain:0}}},
+  {id:"s2b",date:"2025-03-10",day:2,exercises:{"Hip Thrusts":{sets:[[50,10],[55,9],[55,10]],pain:0},"Rows høj / T-bar Row":{sets:[[45,8],[45,6],[45,8]],pain:0},"Dip Maskine / Triceps Press":{sets:[[50,10],[54,8],[54,10]],pain:0},"Hip Abduction":{sets:[[59,5],[52,8],[52,8]],pain:0}}},
   {id:"s3",date:"2025-01-17",day:3,exercises:{"RDL":{sets:[[10,12],[10,12],[10,12]],pain:0},"HSeated Row":{sets:[[10,12],[10,12],[10,12]],pain:0},"Brystpres":{sets:[[25,14],[29.5,10],[29.5,12]],pain:0},"Leg Extension":{sets:[[18,10],[18,10],[20.3,8]],pain:3}}},
   {id:"s4",date:"2025-02-06",day:1,exercises:{"Hasecurl":{sets:[[52,10],[52,10],[52,9]],pain:0},"Benpres":{sets:[[41.3,10],[41.3,12],[45,12]],pain:4},"Divergent Seated Rows":{sets:[[27,10],[27,10],[29.3,7]],pain:0},"Skulderpres":{sets:[[0,0],[0,0],[0,0]],pain:0}}},
   {id:"s5",date:"2025-02-20",day:3,exercises:{"RDL":{sets:[[30,10],[40,8],[40,8]],pain:0},"HSeated Row":{sets:[[0,0],[0,0],[0,0]],pain:0},"Brystpres":{sets:[[12.5,10],[15,8],[15,8]],pain:0},"Leg Extension":{sets:[[25,5],[20.3,10],[22.6,8]],pain:6}}},
@@ -452,21 +453,39 @@ function renderBody(){
   if(valid.length>=2) drawBodyChart(valid,'body-chart');
 }
 function drawBodyChart(data,id){
-  var W=Math.min(window.innerWidth-60,420), H=160, pad={t:10,r:10,b:30,l:10};
+  var W=Math.min(window.innerWidth-60,420), H=180, pad={t:10,r:10,b:30,l:10};
   var iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
   var n=data.length;
-  function sx(i){return pad.l+i*(iW/(n-1))}
+  function sx(i){return pad.l+(n===1?iW/2:i*(iW/(n-1)))}
+  // Each metric gets its OWN scale so all lines are always visible
   function lineFor(key,color){
-    var vals=data.map(function(d){return d[key]||0});
+    var vals=data.map(function(d){return parseFloat(d[key])||null}).filter(function(v){return v!==null});
+    if(vals.length<2)return '';
     var mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals);
-    if(mn===mx){mn-=1;mx+=1}
-    var pts=data.map(function(d,i){return sx(i)+','+(pad.t+iH-(((d[key]||0)-mn)/(mx-mn))*iH)}).join(' ');
-    return '<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="2"/>';
+    var rng=mx-mn; if(rng<2){mn=mn-2;mx=mx+2;rng=mx-mn}
+    var pts=data.map(function(d,i){
+      var v=parseFloat(d[key]);
+      if(!v)return null;
+      return sx(i)+','+(pad.t+iH-((v-mn)/rng)*iH);
+    }).filter(Boolean).join(' ');
+    if(!pts)return '';
+    // dots at each point
+    var dots=data.map(function(d,i){
+      var v=parseFloat(d[key]);
+      if(!v)return '';
+      var y=pad.t+iH-((v-mn)/rng)*iH;
+      return '<circle cx="'+sx(i)+'" cy="'+y+'" r="3" fill="'+color+'"/>';
+    }).join('');
+    // value labels at last point
+    var lastIdx=data.length-1;
+    var lastV=parseFloat(data[lastIdx][key]);
+    var label=lastV?'<text x="'+(sx(lastIdx)+5)+'" y="'+(pad.t+iH-((lastV-mn)/rng)*iH+4)+'" fill="'+color+'" font-size="9">'+lastV+'</text>':'';
+    return '<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="2.5"/>'+dots+label;
   }
   var svg='<svg width="'+W+'" height="'+H+'">';
-  [0.5,1].forEach(function(f){var y=pad.t+iH*(1-f);svg+='<line x1="'+pad.l+'" y1="'+y+'" x2="'+(pad.l+iW)+'" y2="'+y+'" stroke="#2e2e3e" stroke-width="1"/>'});
+  [0.25,0.5,0.75,1].forEach(function(f){var y=pad.t+iH*(1-f);svg+='<line x1="'+pad.l+'" y1="'+y+'" x2="'+(pad.l+iW)+'" y2="'+y+'" stroke="#2e2e3e" stroke-width="1"/>'});
   svg+=lineFor('waist','#c8f55a')+lineFor('hip','#5ac8f5')+lineFor('thigh','#a78bfa');
-  data.forEach(function(d,i){if(i===0||i===n-1)svg+='<text x="'+sx(i)+'" y="'+(H-6)+'" text-anchor="middle" fill="#7a7a9a" font-size="9">'+fmtDate(d.date)+'</text>'});
+  data.forEach(function(d,i){if(i===0||i===n-1||i===Math.floor(n/2))svg+='<text x="'+sx(i)+'" y="'+(H-6)+'" text-anchor="middle" fill="#7a7a9a" font-size="9">'+fmtDate(d.date)+'</text>'});
   svg+='</svg>';
   document.getElementById(id).innerHTML=svg;
 }
@@ -541,3 +560,4 @@ renderTrain();
 </script>
 </body>
 </html>
+
