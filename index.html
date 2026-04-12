@@ -23,7 +23,7 @@ body{background:#0f0f14;color:#f0f0f8;font-family:'Courier New',monospace;oversc
 /* Content */
 #content{padding-bottom:60px}
 .page{padding:16px}
-/* Cards */
+/* Cards */a
 .card{background:#22222f;border:1px solid #2e2e3e;border-radius:14px;padding:16px;margin-bottom:12px}
 .card-title{font-weight:700;font-size:17px;color:#f0f0f8}
 .card-sub{font-size:11px;color:#7a7a9a;margin-top:3px}
@@ -155,8 +155,8 @@ function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 var sessions=[], programs={}, library=[], bodyData=[];
-var selectedDay=null, workoutData={}, showingChart={}, showLib=false;
-var histDay=1, histEx=null;
+var selectedDay=null, workoutDate='', workoutData={}, showingChart={}, showLib=false;
+var histDay=1, histEx=null, editingSessionId=null;
 
 function initState(){
   var s=lsGet('fit_sessions');
@@ -265,7 +265,6 @@ function renderTrain(){
       var exs=(programs[d]&&programs[d].exercises)||[];
       html+='<button class="day-btn" onclick="selectDay('+d+')">';
       html+='<h2>Dag '+d+'</h2>';
-      html+='<p>'+(programs[d]?programs[d].name:'')+'</p>';
       html+='<small>'+exs.slice(0,3).join(' · ')+(exs.length>3?' ···':'')+'</small>';
       html+='</button>';
     });
@@ -277,6 +276,7 @@ function renderTrain(){
 
 function selectDay(d){
   selectedDay=d;
+  workoutDate=today();
   workoutData={};
   var exs=(programs[d]&&programs[d].exercises)||[];
   exs.forEach(function(ex){workoutData[ex]={sets:[{w:'',r:''},{w:'',r:''},{w:'',r:''}],pain:0}});
@@ -287,7 +287,8 @@ function selectDay(d){
 function renderWorkout(){
   var p=document.getElementById('page-train');
   var exs=(programs[selectedDay]&&programs[selectedDay].exercises)||[];
-  var html='<div class="back-row"><button class="btn-back" onclick="backTodays()">←</button><div><h2>Dag '+selectedDay+'</h2><p>'+(programs[selectedDay]?programs[selectedDay].name:'')+'</p></div></div>';
+  var html='<div class="back-row"><button class="btn-back" onclick="backTodays()">←</button><div><h2>Dag '+selectedDay+'</h2></div></div>';
+  html+='<div style="margin-bottom:16px"><label style="font-size:12px;color:#7a7a9a;display:block;margin-bottom:6px;letter-spacing:1px">DATO</label><input class="form-input" type="date" id="workout-date" value="'+workoutDate+'" onchange="workoutDate=this.value" style="font-size:15px"></div>';
   exs.forEach(function(ex){
     var last=getLastSession(selectedDay,ex);
     var wd=workoutData[ex]||{sets:[{w:'',r:''},{w:'',r:''},{w:'',r:''}],pain:0};
@@ -345,7 +346,8 @@ function toggleChart(ex,cid,btn){
   else document.getElementById(cid).innerHTML='';
 }
 function saveWorkout(){
-  var newS={id:'s'+Date.now(),date:today(),day:selectedDay,exercises:{}};
+  var d=document.getElementById('workout-date');var useDate=d&&d.value?d.value:today();
+  var newS={id:'s'+Date.now(),date:useDate,day:selectedDay,exercises:{}};
   var exs=(programs[selectedDay]&&programs[selectedDay].exercises)||[];
   exs.forEach(function(ex){
     var d=workoutData[ex]||{sets:[{w:'',r:''},{w:'',r:''},{w:'',r:''}],pain:0};
@@ -386,25 +388,80 @@ function renderHistory(){
   }
   // sessions
   html+='<p style="font-size:12px;color:#7a7a9a;margin:16px 0 10px;letter-spacing:1px">ALLE SESSIONER</p>';
-  sessions.slice().reverse().slice(0,10).forEach(function(s){
-    html+='<div class="session-card">';
-    html+='<div class="session-head"><span class="session-day">Dag '+s.day+'</span><span class="session-date">'+fmtDate(s.date)+'</span></div>';
-    Object.keys(s.exercises).forEach(function(ex){
-      var d=s.exercises[ex];
-      var valid=d.sets.filter(function(st){return st[0]>0});
-      if(!valid.length)return;
-      html+='<div class="session-ex"><span>'+ex+':</span> ';
-      html+=valid.map(function(st){return st[0]+'×'+st[1]}).join(' ');
-      if(d.pain>0) html+=' <span style="color:#ff6b6b">· S'+d.pain+'</span>';
+  sessions.slice().reverse().slice(0,20).forEach(function(s,idx){
+    var isEditing=(editingSessionId===s.id);
+    html+='<div class="session-card" style="'+(isEditing?'border-color:#c8f55a':'')+'">';
+    html+='<div class="session-head">';
+    html+='<span class="session-day">Dag '+s.day+'</span>';
+    html+='<div style="display:flex;align-items:center;gap:8px">';
+    if(isEditing){
+      html+='<input type="date" id="edit-date" value="'+s.date+'" style="background:#0f0f14;border:1px solid #2e2e3e;border-radius:6px;padding:4px 8px;color:#f0f0f8;font-size:12px;font-family:monospace">';
+    } else {
+      html+='<span class="session-date">'+fmtDate(s.date)+'</span>';
+      html+='<button onclick="startEdit(''+s.id+'')" style="background:transparent;border:none;color:#7a7a9a;cursor:pointer;font-size:13px">✏️</button>';
+    }
+    html+='</div></div>';
+    if(isEditing){
+      Object.keys(s.exercises).forEach(function(ex){
+        var exd=s.exercises[ex];
+        html+='<div style="margin-top:10px"><div style="font-size:12px;color:#c8f55a;margin-bottom:6px">'+ex+'</div>';
+        exd.sets.forEach(function(st,si){
+          html+='<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">';
+          html+='<span style="font-size:11px;color:#7a7a9a;width:20px">S'+(si+1)+'</span>';
+          html+='<input type="number" inputmode="decimal" placeholder="Kg" value="'+(st[0]||'')+'" id="es-'+ex.replace(/[^a-z0-9]/gi,'_')+'-'+si+'-w" style="flex:1;background:#0f0f14;border:1px solid #2e2e3e;border-radius:6px;padding:8px;color:#f0f0f8;font-size:14px;text-align:center;font-family:monospace">';
+          html+='<input type="number" inputmode="numeric" placeholder="Reps" value="'+(st[1]||'')+'" id="es-'+ex.replace(/[^a-z0-9]/gi,'_')+'-'+si+'-r" style="flex:1;background:#0f0f14;border:1px solid #2e2e3e;border-radius:6px;padding:8px;color:#f0f0f8;font-size:14px;text-align:center;font-family:monospace">';
+          html+='</div>';
+        });
+        html+='<div style="display:flex;align-items:center;gap:8px;margin-top:4px">';
+        html+='<span style="font-size:11px;color:#7a7a9a">Smerte:</span>';
+        html+='<input type="number" inputmode="numeric" min="0" max="10" value="'+exd.pain+'" id="es-'+ex.replace(/[^a-z0-9]/gi,'_')+'-pain" style="width:50px;background:#0f0f14;border:1px solid #2e2e3e;border-radius:6px;padding:6px;color:#ff6b6b;font-size:14px;text-align:center;font-family:monospace">';
+        html+='</div>';
+        html+='</div>';
+      });
+      html+='<div style="display:flex;gap:8px;margin-top:12px">';
+      html+='<button onclick="cancelEdit()" style="flex:1;padding:10px;background:#2e2e3e;border:none;border-radius:10px;color:#f0f0f8;cursor:pointer;font-family:monospace;font-weight:700">Annuller</button>';
+      html+='<button onclick="saveEdit(''+s.id+'')" style="flex:2;padding:10px;background:#c8f55a;border:none;border-radius:10px;color:#0f0f14;cursor:pointer;font-family:monospace;font-weight:800">GEM ÆNDRINGER</button>';
       html+='</div>';
-    });
+    } else {
+      Object.keys(s.exercises).forEach(function(ex){
+        var d=s.exercises[ex];
+        var valid=d.sets.filter(function(st){return st[0]>0});
+        if(!valid.length)return;
+        html+='<div class="session-ex"><span>'+ex+':</span> ';
+        html+=valid.map(function(st){return st[0]+'×'+st[1]}).join(' ');
+        if(d.pain>0) html+=' <span style="color:#ff6b6b">· S'+d.pain+'</span>';
+        html+='</div>';
+      });
+    }
     html+='</div>';
   });
   document.getElementById('page-history').innerHTML=html;
   if(histEx) drawChart(buildChartData(histEx),'hist-chart');
 }
-function setHistDay(d){histDay=d;renderHistory()}
+function setHistDay(d){histDay=d;editingSessionId=null;renderHistory()}
 function setHistEx(ex){histEx=ex;renderHistory()}
+function startEdit(id){editingSessionId=id;renderHistory();setTimeout(function(){var el=document.querySelector('.session-card [id^=edit-date]');if(el)el.scrollIntoView({behavior:'smooth',block:'center'})},100)}
+function cancelEdit(){editingSessionId=null;renderHistory()}
+function saveEdit(id){
+  var s=sessions.find(function(x){return x.id===id});
+  if(!s)return;
+  var dateEl=document.getElementById('edit-date');
+  if(dateEl&&dateEl.value) s.date=dateEl.value;
+  Object.keys(s.exercises).forEach(function(ex){
+    var key=ex.replace(/[^a-z0-9]/gi,'_');
+    s.exercises[ex].sets.forEach(function(st,si){
+      var w=document.getElementById('es-'+key+'-'+si+'-w');
+      var r=document.getElementById('es-'+key+'-'+si+'-r');
+      if(w) st[0]=parseFloat(w.value)||0;
+      if(r) st[1]=parseInt(r.value)||0;
+    });
+    var p=document.getElementById('es-'+key+'-pain');
+    if(p) s.exercises[ex].pain=parseInt(p.value)||0;
+  });
+  lsSet('fit_sessions',sessions.filter(function(s){return!HISTORICAL.find(function(h){return h.id===s.id})}));
+  editingSessionId=null;
+  renderHistory();
+}
 
 // ── BODY ──────────────────────────────────────────────────────────────────────
 var addingBody=false;
@@ -560,4 +617,3 @@ renderTrain();
 </script>
 </body>
 </html>
-
