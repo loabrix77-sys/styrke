@@ -398,7 +398,7 @@ function renderHistory(){
       html+='<input type="date" id="edit-date" value="'+s.date+'" style="background:#0f0f14;border:1px solid #2e2e3e;border-radius:6px;padding:4px 8px;color:#f0f0f8;font-size:12px;font-family:monospace">';
     } else {
       html+='<span class="session-date">'+fmtDate(s.date)+'</span>';
-      html+='<button onclick="startEdit(''+s.id+'')" style="background:transparent;border:none;color:#7a7a9a;cursor:pointer;font-size:13px">✏️</button>';
+      html+='<button onclick="startEdit(this.dataset.id)" data-id="'+s.id+'" style="background:transparent;border:none;color:#7a7a9a;cursor:pointer;font-size:13px">✏️</button>';
     }
     html+='</div></div>';
     if(isEditing){
@@ -420,7 +420,7 @@ function renderHistory(){
       });
       html+='<div style="display:flex;gap:8px;margin-top:12px">';
       html+='<button onclick="cancelEdit()" style="flex:1;padding:10px;background:#2e2e3e;border:none;border-radius:10px;color:#f0f0f8;cursor:pointer;font-family:monospace;font-weight:700">Annuller</button>';
-      html+='<button onclick="saveEdit(''+s.id+'')" style="flex:2;padding:10px;background:#c8f55a;border:none;border-radius:10px;color:#0f0f14;cursor:pointer;font-family:monospace;font-weight:800">GEM ÆNDRINGER</button>';
+      html+='<button onclick="saveEdit(this.dataset.id)" data-id="'+s.id+'" style="flex:2;padding:10px;background:#c8f55a;border:none;border-radius:10px;color:#0f0f14;cursor:pointer;font-family:monospace;font-weight:800">GEM ÆNDRINGER</button>';
       html+='</div>';
     } else {
       Object.keys(s.exercises).forEach(function(ex){
