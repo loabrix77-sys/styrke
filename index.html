@@ -108,6 +108,11 @@ svg text{font-family:'Courier New',monospace}
 .lib-item span.plus{color:#c8f55a;font-size:18px}
 /* lib toggle */
 .lib-toggle{width:100%;padding:10px;background:transparent;border:1px dashed #2e2e3e;border-radius:10px;color:#7a7a9a;font-size:12px;cursor:pointer;font-family:'Courier New',monospace}
+
+.import-export-wrap{display:flex;gap:8px;margin-bottom:16px}
+.import-export-wrap button{flex:1;padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Courier New',monospace;border:none}
+.btn-export{background:#22222f;border:1px solid #c8f55a!important;color:#c8f55a}
+.btn-import{background:#22222f;border:1px solid #5ac8f5!important;color:#5ac8f5}
 </style>
 </head>
 <body>
@@ -157,6 +162,48 @@ function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 var sessions=[], programs={}, library=[], bodyData=[];
 var selectedDay=null, workoutDate='', workoutData={}, showingChart={}, showLib=false;
 var histDay=1, histEx=null, editingSessionId=null;
+
+
+function exportData(){
+  var data={sessions:sessions,programs:programs,library:library,bodyData:bodyData};
+  var json=JSON.stringify(data,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='styrke-backup-'+today()+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(){
+  var input=document.createElement('input');
+  input.type='file';
+  input.accept='.json';
+  input.onchange=function(e){
+    var file=e.target.files[0];
+    if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var data=JSON.parse(ev.target.result);
+        if(data.sessions) sessions=data.sessions;
+        if(data.programs) programs=data.programs;
+        if(data.library) library=data.library;
+        if(data.bodyData) bodyData=data.bodyData;
+        lsSet('fit_sessions',sessions.filter(function(s){return!HISTORICAL.find(function(h){return h.id===s.id})}));
+        lsSet('fit_programs',programs);
+        lsSet('fit_library',library);
+        lsSet('fit_body',bodyData);
+        document.getElementById('session-count').textContent=sessions.length+' SESSIONER';
+        alert('Data importeret – '+sessions.length+' sessioner indlæst');
+        renderTrain();
+      }catch(err){alert('Fejl: Kunne ikke læse filen. Er det en gyldig backup?')}
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
 
 function initState(){
   var s=lsGet('fit_sessions');
@@ -560,6 +607,7 @@ function saveBody(){
 var progDay=1;
 function renderProgram(){
   var html='<p style="font-size:12px;color:#7a7a9a;margin-bottom:10px;letter-spacing:1px">PROGRAM</p>';
+  html+='<div class="import-export-wrap"><button class="btn-export" onclick="exportData()">⬇ Eksporter data</button><button class="btn-import" onclick="importData()">⬆ Importer data</button></div>';
   html+='<div class="day-tabs">';
   [1,2,3].forEach(function(d){
     html+='<button class="day-tab" style="background:'+(progDay===d?'#c8f55a':'#22222f')+';color:'+(progDay===d?'#0f0f14':'#7a7a9a')+'" onclick="setProgDay('+d+')">Dag '+d+'</button>';
