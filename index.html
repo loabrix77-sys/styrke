@@ -305,6 +305,46 @@ var HISTORICAL=[
 function lsGet(k){try{var v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 function saveUserSessions(){lsSet('fit_sessions',sessions.filter(function(s){return!HISTORICAL.find(function(h){return h.id===s.id})}))}
+// ── GOOGLE SHEETS SYNC ────────────────────────────────────────────────────
+var SHEET_URL='https://script.google.com/macros/s/AKfycbyWduw_XO5Ss1XiUtr3VvQs4I4u0_DrbmogfzZcVKtn6-__vjZZlF-wfMO3yyRmR3vz/exec';
+var SHEET_SECRET='styrke-loa-2026';
+function syncToSheet(type, payload, silent){
+  if(!SHEET_URL) return;
+  try{
+    var body=JSON.stringify(Object.assign({secret:SHEET_SECRET, type:type}, payload));
+    fetch(SHEET_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:body
+    }).then(function(){
+      if(!silent) showToast('☁️ Synket til Sheet');
+    }).catch(function(e){
+      if(!silent) showToast('⚠️ Sync fejl (data lokalt gemt)');
+    });
+  }catch(e){
+    if(!silent) showToast('⚠️ Sync fejl');
+  }
+}
+function syncAllToSheet(){
+  showToast('☁️ Sender alle data til Sheet…');
+  // Programs first
+  syncToSheet('programs',{programs:programs},true);
+  // Then body data, one by one
+  bodyData.forEach(function(b,i){
+    setTimeout(function(){syncToSheet('body',{body:b},true)}, 100*(i+1));
+  });
+  // Then sessions, staggered to avoid rate limits
+  var offset=100*(bodyData.length+1);
+  sessions.forEach(function(s,i){
+    setTimeout(function(){
+      syncToSheet('session',{session:s},true);
+      if(i===sessions.length-1){
+        setTimeout(function(){showToast('✓ '+sessions.length+' sessioner sendt')}, 500);
+      }
+    }, offset+150*i);
+  });
+}
 // ── STATE ─────────────────────────────────────────────────────────────────
 var sessions=[],programs={},library=[],bodyData=[];
 var selectedDay=null,workoutDate='',workoutData={},currentExercises=[],showCurrLib=false;
@@ -720,6 +760,8 @@ function saveWorkout(){
   sessions.push(newS);sessions.sort(function(a,b){return a.date<b.date?-1:1});
   saveUserSessions();updateCount();
   showToast('✓ Træning gemt – '+savedCount+' øvelse'+(savedCount===1?'':'r'));
+  // Sync til Google Sheet
+  syncToSheet('session',{session:newS},true);
   setTimeout(function(){selectedDay=null;renderTrain()},1200);
 }
 // ── HISTORY ───────────────────────────────────────────────────────────────
@@ -837,11 +879,13 @@ function saveBody(){
   var entry={date:document.getElementById('bi-date').value,waist:parseFloat(document.getElementById('bi-waist').value)||null,hip:parseFloat(document.getElementById('bi-hip').value)||null,thigh:parseFloat(document.getElementById('bi-thigh').value)||null};
   bodyData.push(entry);bodyData.sort(function(a,b){return a.date<b.date?-1:1});
   lsSet('fit_body',bodyData);addingBody=false;showToast('✓ Måling gemt');renderBody();
+  syncToSheet('body',{body:entry},true);
 }
 // ── PROGRAM ───────────────────────────────────────────────────────────────
 function renderProgram(){
   var html='<p class="section-label">Program</p>';
   html+='<div class="ie-wrap"><button class="btn-export" onclick="exportData()">⬇ Eksporter</button><button class="btn-import" onclick="importData()">⬆ Importer</button></div>';
+  html+='<button class="btn-export" style="width:100%;margin-bottom:8px;background:rgba(26,122,112,0.15);border:1.5px solid var(--petrol)" onclick="syncAllToSheet()">☁️ Synk alt til Google Sheet</button>';
   html+='<button class="btn-export" style="width:100%;margin-bottom:14px;border-style:dashed" onclick="showRawData()">🔧 Vis rå data (debug)</button>';
   html+='<div class="day-tabs">';
   [1,2,3].forEach(function(d){html+='<button class="day-tab'+(progDay===d?' active':'')+'" onclick="setProgDay('+d+')">Dag '+d+'</button>'});
@@ -864,9 +908,9 @@ function renderProgram(){
   document.getElementById('page-program').innerHTML=html;
 }
 function setProgDay(d){progDay=d;showLib=false;renderProgram()}
-function removeEx(ex){programs[progDay].exercises=programs[progDay].exercises.filter(function(e){return e!==ex});lsSet('fit_programs',programs);renderProgram()}
-function addEx(){var inp=document.getElementById('new-ex');var name=(inp.value||'').trim();if(!name)return;if(library.indexOf(name)<0)library.push(name);if(programs[progDay].exercises.indexOf(name)<0)programs[progDay].exercises.push(name);lsSet('fit_programs',programs);lsSet('fit_library',library);inp.value='';renderProgram()}
-function addFromLib(ex){if(programs[progDay].exercises.indexOf(ex)<0)programs[progDay].exercises.push(ex);lsSet('fit_programs',programs);showLib=false;renderProgram()}
+function removeEx(ex){programs[progDay].exercises=programs[progDay].exercises.filter(function(e){return e!==ex});lsSet('fit_programs',programs);syncToSheet('programs',{programs:programs},true);renderProgram()}
+function addEx(){var inp=document.getElementById('new-ex');var name=(inp.value||'').trim();if(!name)return;if(library.indexOf(name)<0)library.push(name);if(programs[progDay].exercises.indexOf(name)<0)programs[progDay].exercises.push(name);lsSet('fit_programs',programs);lsSet('fit_library',library);inp.value='';syncToSheet('programs',{programs:programs},true);renderProgram()}
+function addFromLib(ex){if(programs[progDay].exercises.indexOf(ex)<0)programs[progDay].exercises.push(ex);lsSet('fit_programs',programs);syncToSheet('programs',{programs:programs},true);showLib=false;renderProgram()}
 function toggleLib(){showLib=!showLib;renderProgram()}
 // ── IMPORT / EXPORT ───────────────────────────────────────────────────────
 function exportData(){
